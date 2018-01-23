@@ -323,7 +323,7 @@ def ClearScreen():
 def exit_script():
 	global original_interface
 	global interface
-	print('Stopping monitor mod and exiting please wait....\n')
+	print('\n[!] Stopping monitor mod and exiting please wait....\n')
 	subprocess.check_output(['airmon-ng', 'stop', interface])
 	time.sleep(8)
 	command_run = subprocess.call(['ip', 'link', 'set', 'dev', original_interface, 'up'])
