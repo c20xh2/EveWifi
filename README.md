@@ -11,7 +11,7 @@ You will need:
 
 ## Usage:
 
-sudo python3 EveWifi.py
+    sudo python3 EveWifi.py
 
 ## What is this:
 
