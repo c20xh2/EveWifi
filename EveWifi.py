@@ -3,6 +3,8 @@ import logging
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 import os
 import subprocess
+import requests
+
 from operator import attrgetter
 from scapy.all import *
 from sys import exit
@@ -17,19 +19,30 @@ class AccessPoint:
 		self.iden = iden
 
 class Client_object:
-	def __init__(self, c_iden, client_bssid, selected_ap, channel, selected_ap_ssid):
+	def __init__(self, c_iden, client_bssid, selected_ap, channel, selected_ap_ssid, client_vendor):
 		self.c_iden = c_iden
 		self.bssid = client_bssid
 		self.acces_point_bssid = selected_ap
 		self.channel = channel
 		self.acces_point_ssid = selected_ap_ssid
 		self.deauth = False
+		self.client_vendor = client_vendor
 
 class Network_interface:
 	def __init__(self, iden, interface_name):
 		self.iden = iden
 		self.interface_name = interface_name
 
+
+def check_vendor(mac):
+	url = "https://macvendors.co/api/{}".format(mac)
+	try:
+		r = requests.get(url)
+		result = r.json()
+		client_vendor = result['result']['company']
+	except:
+		client_vendor = 'Unknown'
+	return client_vendor
 
 def Interface_Choice():
 	global interface
@@ -161,35 +174,42 @@ def Scan_For_Clients():
 def Show_Avalaible_Clients():
 	global clients_list
 	global selected_ap
+	global deauth_all
+
 	ClearScreen()
 	if len(clients_list) > 0:
 		print('#######')
 		print('Clients found for {}:'.format(selected_ap.ssid))
 		print('#######\n')
-		print('\tID |       Clients        |       AP BSSID       |    AP SSID    ')
-		print('\t---------------------------------------------------------------')
+		print('\tID |       Clients        |       AP BSSID       |    AP SSID   | Clients Vendors ')
+		print('\t-------------------------------------------------------------------------------------')
 		clients_list_sorted = sorted(clients_list.values(), key=attrgetter("c_iden"))
 		for client in clients_list_sorted:
 			if client.c_iden >= 10:
-				print('\t{} |  {}   |  {}   |   {}'.format(client.c_iden, client.bssid, client.acces_point_bssid, client.acces_point_ssid))
+				print('\t{} |  {}   |  {}   |   {}     | {}'.format(client.c_iden, client.bssid, client.acces_point_bssid, client.acces_point_ssid, client.client_vendor))
 			else:
-				print('\t{}  |  {}   |  {}   |   {}'.format(client.c_iden, client.bssid, client.acces_point_bssid, client.acces_point_ssid))
+				print('\t{}  |  {}   |  {}   |  {}     | {}'.format(client.c_iden, client.bssid, client.acces_point_bssid, client.acces_point_ssid, client.client_vendor))
 		print('\n')
 		Select_Clients_Target()
 	else:
 		print('#######')
-		retry = input('\n[!] No Clients found for {}, retry (y/n) ?: '.format(selected_ap.ssid))
+		retry = input('\n[!] No Clients found for {}, retry or deauth all (y/n/a) ?: '.format(selected_ap.ssid))
 		print('#######\n')
 		if retry.lower() == 'y':
 			Scan_For_Clients()
 		elif retry.lower() == 'n':
 			exit_script()
+		elif retry.lower() == 'a':
+			deauth_all = True
+			Deauth_Targets()
+
 		else:
 			Show_Avalaible_Clients()
 def Select_Clients_Target():
 	global client_Targets
 	global clients_list
 	global deauth_all
+	deauth_all = False
 
 	try:
 		client_selection = input('\n[*] Please enter the ID of the clients to attack (comma separated, 0 for all, r for retry): ')
@@ -301,13 +321,16 @@ def ClientHandler(pkt):
 				if client_bssid not in clients_list:
 					c_iden +=1
 					selected_ap_ssid = selected_ap.ssid
-					clients_list[client_bssid] = Client_object(c_iden, client_bssid, selected_ap.bssid, channel, selected_ap_ssid)	
+					client_vendor = check_vendor(client_bssid)
+					clients_list[client_bssid] = Client_object(c_iden, client_bssid, selected_ap.bssid, channel, selected_ap_ssid, client_vendor)	
 			if pkt.addr2 == selected_ap.bssid:
 				client_bssid = pkt.addr1
 				if client_bssid not in clients_list:
 					c_iden += 1
 					selected_ap_ssid = selected_ap.ssid
-					clients_list[client_bssid] = Client_object(c_iden, client_bssid, selected_ap.bssid, channel, selected_ap_ssid)
+					client_vendor = check_vendor(client_bssid)
+					clients_list[client_bssid] = Client_object(c_iden, client_bssid, selected_ap.bssid, channel, selected_ap_ssid, client_vendor)	
+
 def ClearScreen():
 	print('\n' * 200)
 	print("""
@@ -344,7 +367,9 @@ def Reset():
 	global client_selection
 	global iden
 	global c_iden
+	global deauth_all
 
+	deauth_all = False
 	c_iden = 0
 	iden = 0
 	ap_list = {}
@@ -365,25 +390,28 @@ def Menu():
 	global clients_list_sorted
 
 	ClearScreen()
-	menu_choice = input("""\n 
-[|] What should we do now ? 
-	[c] Continue the attack
-	[s] Scan for more clients
-	[a] Scan for more Access Point
-	[q] Quit the script
+	try:
+		menu_choice = input("""\n 
+	[|] What should we do now ? 
+		[c] Continue the attack
+		[s] Scan for more clients
+		[a] Scan for more Access Point
+		[q] Quit the script
 
-    Choice: """)
-	if menu_choice.lower() == 'c':
-		Deauth_Targets()
-	elif menu_choice.lower() == 's':
-		Scan_For_Clients()
-	elif menu_choice.lower() == 'a':
-		Reset()
-		Scan_For_AP()
-	elif menu_choice.lower() == 'q':
+	    Choice: """)
+		if menu_choice.lower() == 'c':
+			Deauth_Targets()
+		elif menu_choice.lower() == 's':
+			Scan_For_Clients()
+		elif menu_choice.lower() == 'a':
+			Reset()
+			Scan_For_AP()
+		elif menu_choice.lower() == 'q':
+			exit_script()
+		else:
+			Menu()
+	except KeyboardInterrupt:
 		exit_script()
-	else:
-		Menu()
 
 def First_run_menu():
 	global interface
