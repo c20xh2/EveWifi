@@ -145,9 +145,9 @@ def Show_Avaible_AP():
 def Select_AP_Target():
 	global AP_Target
 	global selected_ap
-	AP_Target = input('\n[*] Please enter the identification number of the AP to attack (r for retry): ')
+	AP_Target = input('\n[*] Please enter the ID of the AP to attack (r for retry): ')
 	if AP_Target == 'r':
-		Main()
+		Scan_For_AP()
 	else:	
 		for ap in ap_list:
 				selected_ap = ap_list[ap]
@@ -165,7 +165,7 @@ def Scan_For_Clients():
 	global selected_ap
 	i = 0
 	ClearScreen()
-	print('\n[+] Scanning for clients on {} ...\n'.format(selected_ap.ssid))
+	print('\n[+] Scanning for active clients on {} ...\n'.format(selected_ap.ssid))
 	while i < 10:
 		sniff(iface=conf.iface, prn=ClientHandler, count=10, timeout=3, store=0)
 		i += 1
@@ -193,16 +193,25 @@ def Show_Avalaible_Clients():
 		Select_Clients_Target()
 	else:
 		print('#######')
-		retry = input('\n[!] No Clients found for {}, retry or deauth all (y/n/a) ?: '.format(selected_ap.ssid))
+		print("""\n[!] No active clients found for {}, what should we do ?:
+		[r] Try to find clients again
+		[a] Deauth all clients (will disconnect idle devices)
+		[c] Change access point target
+		[q] Quit the script 
+			""".format(selected_ap.ssid))
+
+		choice = input("\tChoice: ")
 		print('#######\n')
-		if retry.lower() == 'y':
+		if choice.lower() == 'r':
 			Scan_For_Clients()
-		elif retry.lower() == 'n':
-			exit_script()
-		elif retry.lower() == 'a':
+		elif choice.lower() == 'a':
 			deauth_all = True
 			Deauth_Targets()
-
+		elif choice.lower() == 'c':
+			Reset()
+			Scan_For_AP()
+		elif choice.lower() == 'q':
+			exit_script()			
 		else:
 			Show_Avalaible_Clients()
 def Select_Clients_Target():
@@ -341,6 +350,7 @@ def ClearScreen():
 	/_______  / \_/  \___  >\__/\  / |__||__|  |__|
 	        \/           \/      \/                
 	________________________________________________
+						by [c20xh2] | [2018]
 		\n""")
 
 def exit_script():
