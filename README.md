@@ -12,6 +12,8 @@ You will need:
 ## Usage:
 
     sudo python3 EveWifi.py
+    
+When asked, you should send at least 300 deauth packet if you want to disconnect the client for 1 minute (or use 0 for non-stop deauth)
 
 ## What is this:
 
