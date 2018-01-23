@@ -222,23 +222,27 @@ def Select_Clients_Target():
 
 	try:
 		client_selection = input('\n[*] Please enter the ID of the clients to attack (comma separated, 0 for all, r for retry): ')
-		if client_selection == 'r':
+		if ',' in client_selection:
+			client_selection = client_selection.split(',')
+			for selected in client_selection:
+				for client in clients_list:
+					client = clients_list[client]
+					if int(selected) == int(client.c_iden):
+						client.deauth = True			
+		elif client_selection == 'r':
 			ClearScreen()
 			Scan_For_Clients()
+		elif int(client_selection) == 0:
+			deauth_all = True
+		elif int(client_selection) < 0:
+			raise ValueError
 		elif int(client_selection) > len(clients_list):
 			raise ValueError
 		else:
-			if int(client_selection) == 0:
-				deauth_all = True
-			elif int(client_selection) < 0:
-				raise ValueError
-			else:
-				client_selection = client_selection.split(',')
-				for selected in client_selection:
-					for client in clients_list:
-						client = clients_list[client]
-						if int(selected) == int(client.c_iden):
-							client.deauth = True
+			for client in clients_list:
+				client = clients_list[client]
+				if int(client_selection) == int(client.c_iden):
+					client.deauth = True
 	except ValueError:
 		print('\n[!] Incorrect input, enter the ID(s) number(s) of the client(s) !')
 		time.sleep(3)
