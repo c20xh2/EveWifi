@@ -22,6 +22,7 @@ It is also possible to send deauth packets to all clients.
 
 - Remove aircrack-ng dependency, use iwconfig instead to put interface in monitor mode.
 - Add "Deauth all access point" function.
+- Split functions and class in files instead of having everything in EveWifi.py
 - Learn english correctly
  
 
