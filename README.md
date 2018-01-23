@@ -18,7 +18,7 @@ You will need:
 The script will find online access point around you and will let you select client(s) to deauthentificate.
 It is also possible to send deauth packets to all clients.
 
-Right now the script will only find "Active" clients, if the target is not showing in the list it's because the client is not currently sending/receiving any data
+Right now the script will only find "Active" clients, if the target is not showing in the list it's because the client is not currently sending/receiving any data. You can choose to deauth all clients to disconnect idle devices.
 ## To do:
 
 - Remove aircrack-ng dependency, use iwconfig instead to put interface in monitor mode.
