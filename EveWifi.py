@@ -83,7 +83,9 @@ def Interface_Choice():
 		for entry in os.listdir('/sys/class/net/'):
 			if 'mon' in entry:
 				interface = entry
-				os.system('ip link set dev {} up'.format(interface))
+				command_run = subprocess.call(['ip', 'link', 'set', 'dev', interface, 'up'])
+				if command_run != 0 :
+					subprocess.call(['ifconfig', interface, 'up'])
 				conf.iface = interface
 				time.sleep(3)
 
@@ -324,7 +326,9 @@ def exit_script():
 	print('Stopping monitor mod and exiting please wait....\n')
 	subprocess.check_output(['airmon-ng', 'stop', interface])
 	time.sleep(8)
-	os.system('ip link set dev {} up'.format(original_interface))
+	command_run = subprocess.call(['ip', 'link', 'set', 'dev', original_interface, 'up'])
+	if command_run != 0 :
+		subprocess.call(['ifconfig', original_interface, 'up'])
 	exit('\nQuitting..')
 
 
