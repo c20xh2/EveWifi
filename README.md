@@ -4,7 +4,6 @@
 
 You will need:
 
-    apt-get install aircrack-ng
     pip3 install scapy-python3
     git clone https://github.com/c20xh2/EveWifi
 
@@ -23,7 +22,6 @@ It is also possible to send deauth packets to all clients.
 Right now the script will only find "Active" clients, if the target is not showing in the list it's because the client is not currently sending/receiving any data. You can choose to deauth all clients to disconnect idle devices.
 ## To do:
 
-- Remove aircrack-ng dependency, use iwconfig instead to put interface in monitor mode.
 - Add "Deauth all access point" function.
 - Split functions and class in files instead of having everything in EveWifi.py
 - Add comments to script
