@@ -388,7 +388,7 @@ def exit_script():
 		subprocess.call(['ifconfig', interface, 'up'])
 
 	time.sleep(2)
-	subprocess.call('service', 'networking', 'restart')
+	subprocess.call(['service', 'networking', 'restart'])
 	exit('\nQuitting..')
 
 
