@@ -89,18 +89,19 @@ def Interface_Choice():
 		print('\n [+] {} allready in monitor mod, getting ready to scan ...'.format(interface))
 		time.sleep(2)
 	else:
-		subprocess.check_output(['airmon-ng', 'start', interface])
+		command = subprocess.call(['ifconfig', interface, 'down'])
+		if command != 0:
+			subprocess.call(['ip', 'set', 'dev', interface, 'down'])
+
+		subprocess.call(['iwconfig', interface, 'mode', 'mon'])
+		time.sleep(2)
+
+		command = subprocess.call(['ip', 'link', 'set', 'dev', interface, 'up'])
+		if command != 0:
+			subprocess.call(['ifconfig', interface, 'up'])
+
 		ClearScreen()
-		print('\n[+] Setting {} to monitor mod please wait...'.format(interface))
-		time.sleep(3)
-		for entry in os.listdir('/sys/class/net/'):
-			if 'mon' in entry:
-				interface = entry
-				command_run = subprocess.call(['ip', 'link', 'set', 'dev', interface, 'up'])
-				if command_run != 0 :
-					subprocess.call(['ifconfig', interface, 'up'])
-				conf.iface = interface
-				time.sleep(3)
+		conf.iface = interface
 
 def Scan_For_AP():
 	global ap_list
@@ -302,12 +303,13 @@ def Deauth_Targets():
 						print('[|] CTRL + C to stop the attack')
 						deauth_clients()
 					except KeyboardInterrupt:
-						break
 						Menu()
 	except ValueError:
 		print('\n[!] Invalid input, please enter a number ...')
 		time.sleep(3)
 		Deauth_Targets()
+	except KeyboardInterrupt:
+		Menu()
 	Menu()
 
 
@@ -373,14 +375,20 @@ def ClearScreen():
 		\n""")
 
 def exit_script():
-	global original_interface
 	global interface
 	print('\n\n[!] Stopping monitor mod and exiting please wait....\n')
-	subprocess.check_output(['airmon-ng', 'stop', interface])
-	time.sleep(8)
-	command_run = subprocess.call(['ip', 'link', 'set', 'dev', original_interface, 'up'])
+
+	command = subprocess.call(['ip', 'link', 'set', 'dev', interface, 'down'])
+	if command != 0:
+		subprocess.call(['ifconfig', interface, 'down'])
+	subprocess.call(['iwconfig', interface, 'mode', 'managed'])
+	time.sleep(2)
+	command_run = subprocess.call(['ip', 'link', 'set', 'dev', interface, 'up'])
 	if command_run != 0 :
-		subprocess.call(['ifconfig', original_interface, 'up'])
+		subprocess.call(['ifconfig', interface, 'up'])
+
+	time.sleep(2)
+	subprocess.call('service', 'networking', 'restart')
 	exit('\nQuitting..')
 
 
